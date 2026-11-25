@@ -1,0 +1,2 @@
+-r requirements.txt
+pipecat-ai[elevenlabs,google,groq,silero,webrtc]==0.0.108
