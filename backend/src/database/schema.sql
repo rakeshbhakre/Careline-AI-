@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS slots (
 CREATE TABLE IF NOT EXISTS appointments (
     id INTEGER PRIMARY KEY,
     slot_id INTEGER NOT NULL REFERENCES slots(id),
+    patient_name TEXT NOT NULL DEFAULT '',
     phone_number TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'booked' CHECK (status IN ('booked', 'cancelled')),
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,

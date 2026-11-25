@@ -14,6 +14,13 @@ def normalize_phone(value: str) -> str:
     return phone
 
 
+def normalize_patient_name(value: str) -> str:
+    name = ' '.join((value or '').strip().split())
+    if not name or len(name) > 100 or any(not (char.isalpha() or char in " '-.") for char in name):
+        raise ValueError('Provide the patient name before booking')
+    return name
+
+
 class AppointmentService:
     def __init__(self, repository: AppointmentRepository):
         self.repository = repository
@@ -34,8 +41,8 @@ class AppointmentService:
             row['phone_masked'] = '••••' + phone[-4:]
         return rows
 
-    async def book(self, slot_id: int, phone: str):
-        return await asyncio.to_thread(self.repository.book, slot_id, normalize_phone(phone))
+    async def book(self, slot_id: int, phone: str, patient_name: str = ''):
+        return await asyncio.to_thread(self.repository.book, slot_id, normalize_phone(phone), normalize_patient_name(patient_name))
 
     async def cancel(self, phone: str, appointment_id: int | None = None):
         phone = normalize_phone(phone)

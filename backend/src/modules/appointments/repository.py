@@ -41,15 +41,17 @@ class AppointmentRepository:
         with self.db.connect() as conn:
             return [dict(row) for row in conn.execute(sql + ' ORDER BY a.id DESC', params)]
 
-    def book(self, slot_id, phone):
+    def book(self, slot_id, phone, patient_name):
         try:
             with self.db.connect() as conn:
                 conn.execute('BEGIN IMMEDIATE')
                 slot = conn.execute('SELECT * FROM slots WHERE id=? AND start_at > ?', (slot_id, datetime.now(timezone.utc).isoformat())).fetchone()
                 if slot is None:
                     raise BookingConflict('Slot does not exist or has expired')
-                cursor = conn.execute('INSERT INTO appointments(slot_id,phone_number) VALUES (?,?)', (slot_id, phone))
-                result = dict(conn.execute('SELECT * FROM appointments WHERE id=?', (cursor.lastrowid,)).fetchone())
+                cursor = conn.execute('INSERT INTO appointments(slot_id,patient_name,phone_number) VALUES (?,?,?)', (slot_id, patient_name, phone))
+                result = dict(conn.execute('''SELECT a.*, s.start_at, s.end_at, d.name AS doctor_name
+                    FROM appointments a JOIN slots s ON s.id=a.slot_id
+                    JOIN doctors d ON d.id=s.doctor_id WHERE a.id=?''', (cursor.lastrowid,)).fetchone())
             return result
         except sqlite3.IntegrityError as exc:
             raise BookingConflict('Slot is already booked') from exc

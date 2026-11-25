@@ -23,3 +23,6 @@ class Database:
         with self.connect() as conn:
             conn.execute('PRAGMA journal_mode = WAL')
             conn.executescript(Path(__file__).with_name('schema.sql').read_text())
+            appointment_columns = {row['name'] for row in conn.execute('PRAGMA table_info(appointments)')}
+            if 'patient_name' not in appointment_columns:
+                conn.execute("ALTER TABLE appointments ADD COLUMN patient_name TEXT NOT NULL DEFAULT ''")
